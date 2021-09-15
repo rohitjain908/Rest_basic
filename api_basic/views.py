@@ -1,53 +1,51 @@
-from django.shortcuts import render
-from django.http import HttpResponse,JsonResponse
-from rest_framework.parsers import JSONParser
 from .models import Article
 from .serializers import ArticleSerializer
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 # Create your views here.
-@csrf_exempt
+@api_view(['GET','POST'])##now web page is changed
 def article_list(request):
 
   if request.method=="GET":
     articles=Article.objects.all()
     serialize=ArticleSerializer(articles,many=True)
-    return JsonResponse(serialize.data,safe=False)
+    return Response(serialize.data)
 
   elif request.method=="POST":
-    data=JSONParser().parse(request)
-    serialize=ArticleSerializer(data=data)
+    serialize=ArticleSerializer(data=request.data)##call create function of articleserlizer class
+    # and create the instance of following data
 
     if serialize.is_valid():
       serialize.save()
-      return JsonResponse(serialize.data,status=201)
+      return Response(serialize.data,status=status.HTTP_201_CREATED)##status 201:-Created success status response
 
-    return JsonResponse(serialize.errors,status=400)
+    return Response(serialize.errors,status=status.HTTP_400_BAD_REQUEST)##status 400:-Bad Request response status
 
-@csrf_exempt
+@api_view(['GET','PUT','DELETE'])##now web page is changed
 def article_detail(request,pk):
   try:
-    article=Article.objects.get(pk=pk)
+    article=Article.objects.get(pk=pk)##1 based indexing
   except Article.DoesNotExist:
-    return HttpResponse(status=404)
+    return Response(status=status.HTTP_404_NOT_FOUND)##status 404:-page not found
 
   if request.method=="GET":
     serialize=ArticleSerializer(article)
-    return JsonResponse(serialize.data)
+    return Response(serialize.data)
 
-  elif request.method=="PUT":
-    data=JSONParser().parse(request)
-    serialize=ArticleSerializer(article,data=data)
+  elif request.method=="PUT":##update the data
+    serialize=ArticleSerializer(article,data=request.data)##call update function of articleserlizer class and update this instance with following data
 
     if serialize.is_valid():
       serialize.save()
-      return JsonResponse(serialize.data)
+      return Response(serialize.data)
 
-    return JsonResponse(serialize.errors,status=400)
+    return Response(serialize.errors,status=status.HTTP_400_BAD_REQUEST)
 
   elif request.method=="DELETE":
     article.delete()
-    return HttpResponse(status=204)
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
