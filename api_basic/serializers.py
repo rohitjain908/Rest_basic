@@ -6,7 +6,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     model=Article
     #fields=['id','title','author','email','date']
     #fields=['id','title','author']
-    fields='__all__'
+    fields='__all__' ##if you want to include all fields
 
  
 
